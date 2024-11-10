@@ -39,7 +39,7 @@ model = dict(
     test_cfg=dict(mode='slide', crop_size=crop_size, stride=(145, 40)),
 )
 
-train_dataloader = dict(batch_size=8) #batch-size
+train_dataloader = dict(batch_size=16) #batch-size
 val_dataloader = dict(batch_size=1)
 
 

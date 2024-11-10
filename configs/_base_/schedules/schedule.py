@@ -38,7 +38,7 @@ test_cfg = dict(type='TestLoop')
 # default hooks including early stopping
 default_hooks = dict(
     timer=dict(type='IterTimerHook'),  # IterTimerHook을 유지
-    logger=dict(type='LoggerHook', log_metric_by_epoch=True, interval=1),
+    logger=dict(type='LoggerHook', log_metric_by_epoch=True, interval=50),
     param_scheduler=dict(type='ParamSchedulerHook'),
     checkpoint=dict(type='CheckpointHook', by_epoch=True, interval=5),  # save checkpoint every 10 epochs
     sampler_seed=dict(type='DistSamplerSeedHook'),
@@ -46,7 +46,7 @@ default_hooks = dict(
     early_stopping=dict(
         type='EarlyStoppingHook',
         monitor='target_class_dice',  # Metric to monitor
-        patience=40,  # Number of epochs to wait for improvement
+        patience=35,  # Number of epochs to wait for improvement
         min_delta=0.01,  # Minimum change to qualify as an improvement
         rule = 'greater'
     )
