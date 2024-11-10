@@ -3,6 +3,7 @@ import argparse
 import os
 import os.path as osp
 import mmseg.datasets.KiTS21Datasets
+import mmseg.datasets.SMCDatasets
 from mmengine.config import Config, DictAction
 from mmengine.runner import Runner
 
