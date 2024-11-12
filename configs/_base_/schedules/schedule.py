@@ -17,15 +17,22 @@ optim_wrapper = dict(
 optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0005)
 optim_wrapper = dict(type='OptimWrapper', optimizer=optimizer, clip_grad=None)'''
 
-# learning policy
 param_scheduler = [
     dict(
-        type='PolyLR',
+        type='LinearLR',  # Warm-up 스케줄러
+        start_factor=0.001, 
+        by_epoch=True,
+        begin=0,
+        end=5  # warm-up이 진행될 에폭 수 (예: 5 에폭 동안 warm-up 적용)
+    ),
+    dict(
+        type='PolyLR', 
         eta_min=1e-3,
         power=0.9,
-        begin=0,
+        begin=5, 
         end=500,
-        by_epoch=True)
+        by_epoch=True
+    )
 ]
 
 # training schedule for 500 epochs
@@ -40,7 +47,7 @@ default_hooks = dict(
     timer=dict(type='IterTimerHook'),  # IterTimerHook을 유지
     logger=dict(type='LoggerHook', log_metric_by_epoch=True, interval=50),
     param_scheduler=dict(type='ParamSchedulerHook'),
-    checkpoint=dict(type='CheckpointHook', by_epoch=True, interval=5),  # save checkpoint every 10 epochs
+    checkpoint=dict(type='CheckpointHook', by_epoch=True, interval=5, save_last=True),  # save checkpoint every 10 epochs
     sampler_seed=dict(type='DistSamplerSeedHook'),
     visualization=dict(type='SegVisualizationHook'),
     early_stopping=dict(
