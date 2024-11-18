@@ -18,8 +18,8 @@ model = dict(
         depths=[2, 2, 18, 2],
         num_heads=[3, 6, 12, 24],
         patch_size = 2, # patch size 2
-        strides = (2,2,2,2), # patch size에 따른 stride수 변경
-        window_size=7,
+        strides = (2,2,2,2), # patch size에 따른 stride 수 변경
+        window_size=5, # window-size 7->5 수정
         use_abs_pos_embed=False,
         drop_path_rate=0.3,
         patch_norm=True),
@@ -52,7 +52,7 @@ test_evaluator = dict(
     type='IoUMetric')
 
 
-#load_from = checkpoint
-resume_from = '/content/drive/MyDrive/SMC/work_dirs/patch2/FL/batch16lr0.0006/epoch_65.pth'
-log_level = 'DEBUG'
+load_from = checkpoint
+#resume_from = '/content/drive/MyDrive/SMC/work_dirs/patch2/FL/batch16lr0.0006/epoch_65.pth'
+log_level = 'INFO'
 log_processor = dict(by_epoch=True)
