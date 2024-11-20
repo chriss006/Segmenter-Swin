@@ -53,6 +53,6 @@ test_evaluator = dict(
 
 
 #load_from = checkpoint
-resume_from = '/content/drive/MyDrive/SMC/work_dirs/patch2/w5_batch16lr0.0006/epoch_85.pth'
+resume_from = '/content/drive/MyDrive/SMC/work_dirs/patch2/w5_batch16lr0.0006/epoch_175.pth'
 log_level = 'INFO'
 log_processor = dict(by_epoch=True)
