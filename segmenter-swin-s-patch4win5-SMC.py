@@ -14,20 +14,20 @@ model = dict(
     data_preprocessor=data_preprocessor,
     # backbone Swin-small-patch2-window7으로 수정
     backbone=dict(
-        embed_dims=48, # patch size에 따른 embed_dims 1/2
+        embed_dims=96,
         depths=[2, 2, 18, 2],  # Swin-Small 기본값
         num_heads=[3, 6, 12, 24],
-        patch_size=1,  # 패치 크기 1
-        strides=(1, 1, 1, 1),  # 패치 크기에 따른 stride 1
+        patch_size=4,
+        strides=[4,2,1,1], # 패치 크기에 따른 stride 1
         window_size=5,  # Local attention window 크기
         use_abs_pos_embed=False,
         drop_path_rate=0.3,
         patch_norm=True),
     decode_head=dict(
         type='SegmenterMaskTransformerHead',
-        in_channels=384,
-        channels = 384,
-        embed_dims= 384,
+        in_channels=768,
+        channels = 768,
+        embed_dims= 768,
         num_heads=12,
         num_layers=2,
         out_channels=3,
@@ -36,7 +36,7 @@ model = dict(
         loss_decode=dict(
             type='FocalLoss', use_sigmoid=True, loss_weight=1.0),#Focal Loss
     ),
-    test_cfg=dict(mode='slide', crop_size=crop_size, stride=(145, 40)),
+    test_cfg=dict(mode='slide', crop_size=crop_size, stride=(73, 20))
 )
 
 train_dataloader = dict(batch_size=16) #batch-size

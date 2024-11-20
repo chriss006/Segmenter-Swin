@@ -5,7 +5,7 @@ _base_ = [
     'configs/_base_/schedules/schedule.py'
 ]
 
-crop_size = (291, 80)
+crop_size = (292, 80)
 data_preprocessor = dict(size=crop_size)
 
 checkpoint = 'https://download.openmmlab.com/mmsegmentation/v0.5/pretrain/swin/swin_small_patch4_window7_224_20220317-7ba6d6dd.pth'
@@ -14,20 +14,19 @@ model = dict(
     data_preprocessor=data_preprocessor,
     # backbone Swin-small-patch2-window7으로 수정
     backbone=dict(
-        embed_dims=48, # patch size에 따른 embed_dims 1/2
+        embed_dims=96,
         depths=[2, 2, 18, 2],
         num_heads=[3, 6, 12, 24],
-        patch_size = 2, # patch size 2
-        strides = (2,2,2,2), # patch size에 따른 stride 수 변경
+        patch_size = 4
         window_size=5, # window-size 7->5 수정
         use_abs_pos_embed=False,
         drop_path_rate=0.3,
         patch_norm=True),
     decode_head=dict(
         type='SegmenterMaskTransformerHead',
-        in_channels=384,
-        channels = 384,
-        embed_dims= 384,
+        in_channels=768,
+        channels = 768,
+        embed_dims= 768,
         num_heads=12,
         num_layers=2,
         out_channels=3,
@@ -39,7 +38,7 @@ model = dict(
     test_cfg=dict(mode='slide', crop_size=crop_size, stride=(145, 40)),
 )
 
-train_dataloader = dict(batch_size=16) #batch-size
+train_dataloader = dict(batch_size=8) #batch-size
 val_dataloader = dict(batch_size=1)
 
 
@@ -52,7 +51,6 @@ test_evaluator = dict(
     type='IoUMetric')
 
 
-#load_from = checkpoint
-resume_from = '/content/drive/MyDrive/SMC/work_dirs/patch2/w5_batch16lr0.0006/epoch_175.pth'
+load_from = checkpoint
 log_level = 'INFO'
 log_processor = dict(by_epoch=True)

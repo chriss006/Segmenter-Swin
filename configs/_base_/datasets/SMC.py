@@ -48,7 +48,7 @@ tta_pipeline = [
 ]
 
 train_dataloader = dict(
-    batch_size=8, #배치사이즈 24
+    batch_size=8, 
     dataset=dict(
         type='SMCDatasets',
         data_root=data_root,
