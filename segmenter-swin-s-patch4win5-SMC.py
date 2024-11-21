@@ -34,7 +34,7 @@ model = dict(
         dropout_ratio=0.0,
         num_classes=3,
         loss_decode=dict(
-            type='FocalLoss', use_sigmoid=True, loss_weight=1.0),#Focal Loss
+            type='FocalLoss', use_sigmoid=True, loss_weight=1.0, gamma=1.5),#Focal Loss
     ),
     test_cfg=dict(mode='slide', crop_size=crop_size, stride=(73, 20))
 )
@@ -52,7 +52,7 @@ test_evaluator = dict(
     type='IoUMetric')
 
 
-load_from = checkpoint
-#resume_from = '/content/drive/MyDrive/SMC/work_dirs/patch2/w5_batch16lr0.0006/epoch_85.pth'
+#load_from = checkpoint
+resume_from = '/content/drive/MyDrive/SMC/work_dirs/patch4/batch8lr0.0006/epoch_30.pth'
 log_level = 'INFO'
 log_processor = dict(by_epoch=True)
