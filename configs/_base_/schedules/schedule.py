@@ -1,11 +1,11 @@
 # optimizer - AdamW
 optim_wrapper = dict(
-    clip_grad=None,
+    clip_grad=dict(max_norm=1.0, norm_type=2),  # Gradient Clipping 추가
     type='OptimWrapper',
     optimizer=dict(
         betas=(
-            0.9,
-            0.999,
+            0.8,
+            0.99,
         ), lr=6e-05, type='AdamW', weight_decay=0.01),
     paramwise_cfg=dict(
         custom_keys=dict(
@@ -28,7 +28,7 @@ param_scheduler = [
     dict(
         type='PolyLR', 
         eta_min=1e-3,
-        power=0.9,
+        power=0.8,
         begin=5, 
         end=500,
         by_epoch=True
@@ -53,7 +53,7 @@ default_hooks = dict(
     early_stopping=dict(
         type='EarlyStoppingHook',
         monitor='target_class_dice',  # Metric to monitor
-        patience=35,  # Number of epochs to wait for improvement
+        patience=30,  # Number of epochs to wait for improvement
         min_delta=0.01,  # Minimum change to qualify as an improvement
         rule = 'greater'
     )

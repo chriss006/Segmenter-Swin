@@ -5,7 +5,7 @@ _base_ = [
     'configs/_base_/schedules/schedule.py'
 ]
 
-crop_size = (292, 80)
+crop_size = (291, 80)
 data_preprocessor = dict(size=crop_size)
 
 checkpoint = 'https://download.openmmlab.com/mmsegmentation/v0.5/pretrain/swin/swin_small_patch4_window7_224_20220317-7ba6d6dd.pth'
@@ -29,9 +29,9 @@ model = dict(
         embed_dims= 768,
         num_heads=12,
         num_layers=2,
-        out_channels=3,
+        out_channels=2,
         dropout_ratio=0.0,
-        num_classes=3,
+        num_classes=2,
         loss_decode=dict(
             type='FocalLoss', use_sigmoid=True, loss_weight=1.0),#Focal Loss
     ),

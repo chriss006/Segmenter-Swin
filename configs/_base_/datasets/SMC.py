@@ -1,7 +1,7 @@
 # 데이터셋 타입과 경로를 수정
 dataset_type = 'SMCDatasets'
-data_root = '/content/drive/MyDrive/SMC/'
-test_data_root = '/content/drive/MyDrive/SMC/test/'
+data_root = '../SMC/dataset/'
+test_data_root = '../SMC/dataset/test/'
 test_img_dir = 'images'
 test_mask_dir = 'labels'
 img_dir = 'train/images'
