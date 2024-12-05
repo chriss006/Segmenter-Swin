@@ -66,65 +66,81 @@ class IoUMetric(BaseMetric):
 
     def process(self, data_batch: dict, data_samples: Sequence[dict]) -> None:
         """Process one batch of data and data_samples.
-
+    
         The processed results should be stored in ``self.results``, which will
         be used to compute the metrics when all batches have been processed.
-
+    
         Args:
             data_batch (dict): A batch of data from the dataloader.
             data_samples (Sequence[dict]): A batch of outputs from the model.
         """
         num_classes = len(self.dataset_meta['classes'])
+    
         for data_sample in data_samples:
             pred_label = data_sample['pred_sem_seg']['data'].squeeze()
-            # format_only always for test dataset without ground truth
+    
             if not self.format_only:
-                label = data_sample['gt_sem_seg']['data'].squeeze().to(
-                    pred_label)
-                self.results.append(
-                    self.intersect_and_union(pred_label, label, num_classes,
-                                             self.ignore_index))
-            # format_result
+                # Ground truth label extraction
+                label = data_sample['gt_sem_seg']['data'].squeeze().to(pred_label)
+    
+                # Compute intersect, union, pred_area, and gt_area
+                intersect, union, pred_area, gt_area = self.intersect_and_union(
+                    pred_label, label, num_classes, self.ignore_index
+                )
+    
+                # Extract loss_dict from data_sample
+                loss_dict = data_sample.get('loss_dict', None)
+                if loss_dict is None:
+                    print("Warning: loss_dict is missing in data_sample.")
+                    # Default loss_dict with zeroed losses
+                    loss_dict = {'focal_loss': 0.0, 'dice_loss': 0.0, 'combined_loss': 0.0}
+    
+                # Append results (include loss_dict)
+                self.results.append((intersect, union, pred_area, gt_area, loss_dict))
+    
+            # Save output masks if output_dir is provided
             if self.output_dir is not None:
-                basename = osp.splitext(osp.basename(
-                    data_sample['img_path']))[0]
+                basename = osp.splitext(osp.basename(data_sample['img_path']))[0]
                 png_filename = osp.abspath(
-                    osp.join(self.output_dir, f'{basename}.png'))
+                    osp.join(self.output_dir, f'{basename}.png')
+                )
                 output_mask = pred_label.cpu().numpy()
-                # The index range of official ADE20k dataset is from 0 to 150.
-                # But the index range of output is from 0 to 149.
-                # That is because we set reduce_zero_label=True.
+    
+                # Adjust for reduce_zero_label if applicable
                 if data_sample.get('reduce_zero_label', False):
                     output_mask = output_mask + 1
+    
+                # Save prediction as an image
                 output = Image.fromarray(output_mask.astype(np.uint8))
                 output.save(png_filename)
 
+
     def compute_metrics(self, results: list) -> Dict[str, float]:
-        """Compute the metrics from processed results.
+        """Compute the metrics from processed results and log individual losses.
 
         Args:
             results (list): The processed results of each batch.
 
         Returns:
-            Dict[str, float]: The computed metrics. The keys are the names of
-                the metrics, and the values are corresponding results. The key
-                mainly includes aAcc, mIoU, mAcc, mDice, mFscore, mPrecision,
-                mRecall.
+            Dict[str, float]: The computed metrics including loss values.
         """
         logger: MMLogger = MMLogger.get_current_instance()
         if self.format_only:
             logger.info(f'results are saved to {osp.dirname(self.output_dir)}')
             return OrderedDict()
-        # convert list of tuples to tuple of lists, e.g.
-        # [(A_1, B_1, C_1, D_1), ...,  (A_n, B_n, C_n, D_n)] to
-        # ([A_1, ..., A_n], ..., [D_1, ..., D_n])
-        results = tuple(zip(*results))
-        assert len(results) == 4
 
+        # convert list of tuples to tuple of lists
+        # Assume results contain (intersect, union, pred_label, label, loss_dict)
+        results = tuple(zip(*results))
+
+        # Sum up the areas for IoU/Dice calculation
         total_area_intersect = sum(results[0])
         total_area_union = sum(results[1])
         total_area_pred_label = sum(results[2])
         total_area_label = sum(results[3])
+
+
+        # Compute IoU/Dice metrics
         ret_metrics = self.total_area_to_metrics(
             total_area_intersect, total_area_union, total_area_pred_label,
             total_area_label, self.metrics, self.nan_to_num, self.beta)
@@ -159,6 +175,7 @@ class IoUMetric(BaseMetric):
         print_log('\n' + class_table_data.get_string(), logger=logger)
 
         return metrics
+
 
     @staticmethod
     def intersect_and_union(pred_label: torch.tensor, label: torch.tensor,
