@@ -257,6 +257,11 @@ class EncoderDecoder(BaseSegmentor):
         h_crop, w_crop = self.test_cfg.crop_size
         batch_size, _, h_img, w_img = inputs.size()
         out_channels = self.out_channels
+        
+        # Binary segmentation logic: Ensure compatibility
+        if out_channels == 1:  # Binary segmentation case
+            out_channels = 2  # Adjust for binary segmentation
+        
         h_grids = max(h_img - h_crop + h_stride - 1, 0) // h_stride + 1
         w_grids = max(w_img - w_crop + w_stride - 1, 0) // w_stride + 1
         preds = inputs.new_zeros((batch_size, out_channels, h_img, w_img))
@@ -277,6 +282,13 @@ class EncoderDecoder(BaseSegmentor):
         
                 # Perform encode-decode on cropped image
                 crop_seg_logit = self.encode_decode(crop_img, batch_img_metas)
+        
+                # Adjust for binary segmentation (1 -> 2 channels)
+                if crop_seg_logit.shape[1] == 1:  # Binary segmentation
+                    crop_seg_logit = torch.cat(
+                        [1 - torch.sigmoid(crop_seg_logit), torch.sigmoid(crop_seg_logit)],
+                        dim=1
+                    )
                 preds += F.pad(
                     crop_seg_logit,
                     (int(x1), int(preds.shape[3] - x2), int(y1), int(preds.shape[2] - y2))
@@ -307,9 +319,13 @@ class EncoderDecoder(BaseSegmentor):
             Tensor: The segmentation results, seg_logits from model of each
                 input image.
         """
-
-        seg_logits = self.encode_decode(inputs, batch_img_metas)
-
+            # Adjust for binary segmentation (1 -> 2 channels)
+        if seg_logits.shape[1] == 1:  # Binary segmentation
+            seg_logits = torch.cat(
+                [1 - torch.sigmoid(seg_logits), torch.sigmoid(seg_logits)],
+                dim=1
+            )
+        
         return seg_logits
 
     def inference(self, inputs: Tensor, batch_img_metas: List[dict]) -> Tensor:
