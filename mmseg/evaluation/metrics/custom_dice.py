@@ -62,38 +62,72 @@ class CustomDiceMetric(IoUMetric):
 
     def compute_metrics(self, results: list) -> Dict[str, float]:
         results = tuple(zip(*results))
-    
+        
         # Sum up the areas for IoU/Dice calculation
         total_area_intersect = sum(results[0])
         total_area_union = sum(results[1])
         total_area_pred_label = sum(results[2])
         total_area_label = sum(results[3])
-    
+        
         # Extract and compute loss values
         loss_dicts = results[4]
-
-        # Calculate focal_loss, dice_loss, combined_loss 
         focal_loss_mean = np.mean([loss.get('loss_focal', 0.0) for loss in loss_dicts])
         dice_loss_mean = np.mean([loss.get('loss_dice', 0.0) for loss in loss_dicts])
         combined_loss_mean = focal_loss_mean + dice_loss_mean
-        
-        # Logging
-        logger = MMLogger.get_current_instance()
-        logger.info(f'Validation Losses:')
-        logger.info(f'  Focal Loss: {focal_loss_mean:.4f}')
-        logger.info(f'  Dice Loss: {dice_loss_mean:.4f}')
-        logger.info(f'  Combined Loss: {combined_loss_mean:.4f}')
     
         # Compute IoU/Dice metrics
         metrics = self.total_area_to_metrics(
             total_area_intersect, total_area_union, total_area_pred_label,
             total_area_label, self.metrics, self.nan_to_num, self.beta)
     
+        # Add loss values to metrics
         metrics['focal_loss'] = focal_loss_mean
         metrics['dice_loss'] = dice_loss_mean
         metrics['combined_loss'] = combined_loss_mean
+
+        # Add target_class_dice
+        dice_scores = metrics.get('Dice', [])  
+        target_class_idx = getattr(self, 'target_class_index', 1)  
+        target_class_dice = dice_scores[target_class_idx] if len(dice_scores) > target_class_idx else None
+        if target_class_dice is not None:
+            metrics['target_class_dice'] = target_class_dice
+
+        # Generate class-wise table
+        class_names = self.dataset_meta.get('classes', [])
+        num_classes = len(class_names)
+        class_table = PrettyTable()
     
-        return metrics
+        iou_scores = metrics.get('IoU', [0] * num_classes)
+        acc_scores = metrics.get('Acc', [0] * num_classes)
+        dice_scores = metrics.get('Dice', [0] * num_classes)
+
+        class_table.add_column("Class", class_names)
+        class_table.add_column("IoU", [ f'{score:.4f}' for score in iou_scores])
+        class_table.add_column("Acc", [ f"{score:.4f}" for score in acc_scores])
+        class_table.add_column("Dice", [ f"{score:.4f}" for score in dice_scores])
+    
+        # Log results
+        logger = MMLogger.get_current_instance()
+        logger.info(f'Validation Losses:')
+        logger.info(f'  Focal Loss: {focal_loss_mean:.4f}')
+        logger.info(f'  Dice Loss: {dice_loss_mean:.4f}')
+        logger.info(f'  Combined Loss: {combined_loss_mean:.4f}')
+        if target_class_dice is not None:
+            logger.info(f'  Target Class Dice: {target_class_dice:.4f}')
+        print_log('Per class results:', logger)
+        print_log('\n' + class_table.get_string(), logger=logger)
+    
+        # Return summary metrics with target_class_dice
+        ret_metrics_summary = OrderedDict({
+            ret_metric: np.round(np.nanmean(ret_metric_value) * 100, 2)
+            for ret_metric, ret_metric_value in metrics.items()
+            if isinstance(ret_metric_value, (list, np.ndarray))  # Only numeric values
+        })
+        if target_class_dice is not None:
+            ret_metrics_summary['target_class_dice'] = target_class_dice
+        
+        return ret_metrics_summary
+
 
     
 

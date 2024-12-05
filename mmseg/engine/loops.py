@@ -26,13 +26,6 @@ class ValLoops(BaseLoop):
 
         # Calculate metrics from evaluator
         metrics = self.evaluator.evaluate(len(self.dataloader.dataset))
-
-        # Key indicator 설정 및 KeyError 방지
-        key_indicator = self.runner.cfg.get('key_indicator', 'target_class_dice')  # 기본값 설정
-        key_score = metrics.get(key_indicator, None)
-        if key_score is None:
-            logger.warning(f"Key indicator '{key_indicator}' not found in metrics.")
-            key_score = 0.0
         
         # Process and log validation losses
         if self.val_loss:

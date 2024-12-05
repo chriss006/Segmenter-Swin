@@ -53,21 +53,6 @@ def parse_args():
 
 
 def main():
-    import logging
-
-
-    # 기존 핸들러 제거
-    for handler in logging.root.handlers[:]:
-        logging.root.removeHandler(handler)
-
-    # 기본 로깅 설정
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[logging.FileHandler('train.log', mode='w'),logging.StreamHandler()]
-    )
-
-
     args = parse_args()
 
     # load config
@@ -91,7 +76,7 @@ def main():
         if optim_wrapper == 'AmpOptimWrapper':
             print_log(
                 'AMP training is already enabled in your config.',
-                logger='crrent',
+                logger='current',
                 level=logging.WARNING)
         else:
             assert optim_wrapper == 'OptimWrapper', (
@@ -118,3 +103,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
