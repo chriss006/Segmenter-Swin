@@ -61,6 +61,23 @@ train_dataloader = dict(
     sampler=dict(shuffle=True, type='DefaultSampler')
 )
 
+'''train_dataloader = dict(
+    dataset=dict(
+        type='RepeatDataset',
+        times=3,  # oversampling 비율
+        dataset=dict(
+        type='SMCDatasets',
+        data_root=data_root,
+        data_prefix=dict(img_path=img_dir, seg_map_path=ann_dir),
+        pipeline=train_pipeline,
+        reduce_zero_label=False,  # 여기서 reduce_zero_label 설정
+        ann_file='splits/train.txt', 
+    ),
+    ),
+    batch_size=8,
+    num_workers=4,
+    sampler=dict(type='DefaultSampler', shuffle=True),
+)'''
 
 val_dataloader = dict(
     batch_size=1,

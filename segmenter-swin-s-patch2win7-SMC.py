@@ -30,14 +30,14 @@ model = dict(
         embed_dims= 384,
         num_heads=12,
         num_layers=2,
-        out_channels=1,
+        out_channels=2,
         dropout_ratio=0.0,
         num_classes=2,
         loss_decode=[dict(type='FocalLoss', use_sigmoid=True, loss_weight=1.0, gamma=2.0, alpha=0.9), dict(type='DiceLoss',loss_weight=1.0)],),
     test_cfg=dict(mode='slide', crop_size=crop_size, stride=(145, 40)),
 )
 
-train_dataloader = dict(batch_size=16) #batch-size
+train_dataloader = dict(batch_size=32) #batch-size
 val_dataloader = dict(batch_size=1)
 
 
