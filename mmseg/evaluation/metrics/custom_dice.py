@@ -117,19 +117,12 @@ class CustomDiceMetric(IoUMetric):
         print_log('Per class results:', logger)
         print_log('\n' + class_table.get_string(), logger=logger)
     
-
-        # Return summary metrics with target_class_dice and proper naming
+        # Return summary metrics with target_class_dice
         ret_metrics_summary = OrderedDict({
-            f"m{ret_metric}" if ret_metric != "aAcc" else ret_metric: np.nanmean(ret_metric_value) * 100
+            ret_metric: np.round(np.nanmean(ret_metric_value) * 100, 2)
             for ret_metric, ret_metric_value in metrics.items()
             if isinstance(ret_metric_value, (list, np.ndarray))  # Only numeric values
         })
-    
-        # Keep loss metrics as-is
-        ret_metrics_summary['focal_loss'] = focal_loss_mean
-        ret_metrics_summary['dice_loss'] = dice_loss_mean
-        ret_metrics_summary['combined_loss'] = combined_loss_mean
-
         if target_class_dice is not None:
             ret_metrics_summary['target_class_dice'] = target_class_dice
         
