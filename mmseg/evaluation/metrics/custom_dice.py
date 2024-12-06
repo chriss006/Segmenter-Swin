@@ -58,45 +58,63 @@ class CustomDiceMetric(IoUMetric):
         super().__init__(ignore_index=ignore_index, iou_metrics=iou_metrics, nan_to_num=nan_to_num, beta=beta, collect_device=collect_device, output_dir=output_dir, format_only=format_only, prefix=prefix, **kwargs)
         self.target_class_index = target_class_index
 
-
-
     def compute_metrics(self, results: list) -> Dict[str, float]:
+        """Compute the metrics from processed results.
+
+        Args:
+            results (list): The processed results of each batch.
+
+        Returns:
+            Dict[str, float]: The computed metrics. The keys are the names of
+                the metrics, and the values are corresponding results. The key
+                mainly includes aAcc, mIoU, mAcc, mDice, mFscore, mPrecision,
+                mRecall.
+        """
+        logger: MMLogger = MMLogger.get_current_instance()
+        if self.format_only:
+            logger.info(f'results are saved to {osp.dirname(self.output_dir)}')
+            return OrderedDict()
+        
         results = tuple(zip(*results))
-    
-        # Sum up the areas for IoU/Dice calculation
+        assert len(results) == 4
+
         total_area_intersect = sum(results[0])
         total_area_union = sum(results[1])
         total_area_pred_label = sum(results[2])
         total_area_label = sum(results[3])
-    
-        # Extract and compute loss values
-        loss_dicts = results[4]
-
-        # Calculate focal_loss, dice_loss, combined_loss 
-        focal_loss_mean = np.mean([loss.get('loss_focal', 0.0) for loss in loss_dicts])
-        dice_loss_mean = np.mean([loss.get('loss_dice', 0.0) for loss in loss_dicts])
-        combined_loss_mean = focal_loss_mean + dice_loss_mean
-        
-        # Logging
-        logger = MMLogger.get_current_instance()
-        logger.info(f'Validation Losses:')
-        logger.info(f'  Focal Loss: {focal_loss_mean:.4f}')
-        logger.info(f'  Dice Loss: {dice_loss_mean:.4f}')
-        logger.info(f'  Combined Loss: {combined_loss_mean:.4f}')
-    
-        # Compute IoU/Dice metrics
-        metrics = self.total_area_to_metrics(
+        ret_metrics = self.total_area_to_metrics(
             total_area_intersect, total_area_union, total_area_pred_label,
             total_area_label, self.metrics, self.nan_to_num, self.beta)
-    
-        metrics['focal_loss'] = focal_loss_mean
-        metrics['dice_loss'] = dice_loss_mean
-        metrics['combined_loss'] = combined_loss_mean
-    
+
+        class_names = self.dataset_meta['classes']
+
+        ret_metrics_summary = OrderedDict({
+            ret_metric: np.round(np.nanmean(ret_metric_value) * 100, 2)
+            for ret_metric, ret_metric_value in ret_metrics.items()
+        })
+        metrics = dict()
+        for key, val in ret_metrics_summary.items():
+            if key == 'aAcc':
+                metrics[key] = val
+            else:
+                metrics['m' + key] = val
+
+        ret_metrics.pop('aAcc', None)
+        ret_metrics_class = OrderedDict({
+            ret_metric: np.round(ret_metric_value * 100, 2)
+            for ret_metric, ret_metric_value in ret_metrics.items()
+        })
+        ret_metrics_class.update({'Class': class_names})
+        ret_metrics_class.move_to_end('Class', last=False)
+        class_table_data = PrettyTable()
+        for key, val in ret_metrics_class.items():
+            class_table_data.add_column(key, val)
+
+        print_log('per class results:', logger)
+        print_log('\n' + class_table_data.get_string(), logger=logger)
+
+        # Target 클래스의 Dice 점수만 반환
+        target_dice = ret_metrics['Dice'][self.target_class_index]
+        metrics['target_class_dice'] = target_dice * 100 # 소수점 자리수 * 100 
+
         return metrics
-
-    
-
-
-
-
