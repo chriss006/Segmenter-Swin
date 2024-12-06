@@ -46,6 +46,8 @@ default_hooks = dict(
     param_scheduler=dict(type='ParamSchedulerHook'),
     checkpoint=dict(type='CheckpointHook', 
                     by_epoch=True, interval=1, 
+                    save_best=['target_class_dice'],
+                    rule = 'greater',
                     save_last=True,  
                     max_keep_ckpts=1 ), 
     sampler_seed=dict(type='DistSamplerSeedHook'),

@@ -12,7 +12,7 @@ checkpoint = 'swin_small_patch4_window7_224.pth'
 
 model = dict(
     data_preprocessor=data_preprocessor,
-    # backbone Swin-small-patch2-window7 
+    # backbone Swin-small-patch2-window7으로 수정
     backbone=dict(
         embed_dims=48,
         depths=[2, 2, 18, 2],
