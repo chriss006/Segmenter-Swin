@@ -1,36 +1,33 @@
 # 데이터셋 타입과 경로를 수정
 dataset_type = 'SMCDatasets'
-data_root = '../SMC/dataset/'
-test_data_root = '../SMC/dataset/test/'
+data_root = '../SMC/datasets/'
+test_data_root = '../SMC/datasets/test/'
 test_img_dir = 'images'
 test_mask_dir = 'labels'
-img_dir = 'train/images'
-ann_dir = 'train/labels'
+train_img_dir = 'train/images/'
+train_ann_dir = 'train/labels/'
+val_img_dir = 'validation/images/'
+val_ann_dir = 'validation/labels/'
 
-crop_size = (291,80)
+crop_size = (80,291)
+
 
 train_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='LoadAnnotations', reduce_zero_label=False),
-    dict(type='RandomResize', scale=(291, 80), ratio_range=(0.5, 2.0), keep_ratio=True),
-    dict(type='RandomCrop', crop_size=(291, 80), cat_max_ratio=0.75),
-    dict(type='RandomFlip', prob=0.5),
-    dict(type='PhotoMetricDistortion'),
+    dict(type='LoadAnnotations', reduce_zero_label=False ),
     dict(type='PackSegInputs'),
 ]
 
-# validation 파이프라인 설정
 val_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='Resize', scale=(291, 80), keep_ratio=True),
-    dict(type='LoadAnnotations', reduce_zero_label=False),  
+    dict(type='LoadAnnotations', reduce_zero_label=False),
     dict(type='PackSegInputs'),
 ]
 
 # test 파이프라인 설정
 test_pipeline = val_pipeline
 
-img_ratios = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75]
+img_ratios = [0.5, 0.75, 1.0, 1.25, 1.5]
 tta_pipeline = [
     dict(type='LoadImageFromFile', backend_args=None),
     dict(
@@ -43,19 +40,23 @@ tta_pipeline = [
             [
                 dict(type='RandomFlip', prob=0., direction='horizontal'),
                 dict(type='RandomFlip', prob=1., direction='horizontal')
-            ], [dict(type='LoadAnnotations')], [dict(type='PackSegInputs')]
-        ])
+            ],
+            [dict(type='LoadAnnotations')],
+            [dict(type='PackSegInputs')]
+        ]
+    )
 ]
+
 
 train_dataloader = dict(
     batch_size=8, 
     dataset=dict(
         type='SMCDatasets',
         data_root=data_root,
-        data_prefix=dict(img_path=img_dir, seg_map_path=ann_dir),
+        data_prefix=dict(img_path=train_img_dir, seg_map_path=train_ann_dir),
         pipeline=train_pipeline,
-        reduce_zero_label=False,  # 여기서 reduce_zero_label 설정
-        ann_file='splits/train.txt', 
+        reduce_zero_label=False, 
+        ignore_index=255 # 여기서 reduce_zero_label 설정
     ),
     num_workers=4,
     persistent_workers=True,
@@ -67,10 +68,10 @@ val_dataloader = dict(
     dataset=dict(
         type='SMCDatasets',
         data_root=data_root,
-        data_prefix=dict(img_path=img_dir, seg_map_path=ann_dir),
+        data_prefix=dict(img_path=val_img_dir, seg_map_path=val_ann_dir),
         pipeline=val_pipeline,
-        reduce_zero_label=False,  # 여기서 reduce_zero_label 설정
-        ann_file='splits/val.txt',
+        reduce_zero_label=False,
+        ignore_index=255 # 여기서 reduce_zero_label 설정
     ),
     num_workers=4,
     persistent_workers=True,
@@ -84,7 +85,8 @@ test_dataloader =  dict(
         data_root=test_data_root,
         data_prefix=dict(img_path=test_img_dir, seg_map_path=test_mask_dir),
         pipeline=test_pipeline,
-        reduce_zero_label=False,  # 여기서 reduce_zero_label 설정
+        reduce_zero_label=False,
+        ignore_index=255 # 여기서 reduce_zero_label 설정
     ),
     num_workers=4,
     persistent_workers=True,
