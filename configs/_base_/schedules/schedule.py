@@ -20,21 +20,21 @@ param_scheduler = [
         start_factor=0.001, 
         by_epoch=True,
         begin=0,
-        end=5  # warm-up이 진행될 에폭 수 (예: 5 에폭 동안 warm-up 적용)
+        end=10  # warm-up이 진행될 에폭 수 (예: 5 에폭 동안 warm-up 적용)
     ),
     dict(
         type='PolyLR', 
-        eta_min=1e-2,
+        eta_min=1e-3,
         power=0.8,
-        begin=5, 
-        end=300,
+        begin=10, 
+        end=400,
         by_epoch=True
     )
 ]
 
-# training schedule for 500 epochs
+# training schedule for 300 epochs
 train_cfg = dict(
-    type='EpochBasedTrainLoop', max_epochs=300, val_interval=1)  # validate every 10 epochs
+    type='EpochBasedTrainLoop', max_epochs=400, val_interval=1)  # validate every 10 epochs
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')
 
@@ -44,13 +44,13 @@ default_hooks = dict(
     timer=dict(type='IterTimerHook'),  # IterTimerHook을 유지
     logger=dict(type='LoggerHook', log_metric_by_epoch=True, interval=100),
     param_scheduler=dict(type='ParamSchedulerHook'),
-    checkpoint=dict(type='CheckpointHook', by_epoch=True, interval=1, save_last=True,  max_keep_ckpts=1 ),  # save checkpoint every 10 epochs
+    checkpoint=dict(type='CheckpointHook', by_epoch=True, interval=1, save_last=True, save_best='target_class_dice', rule='greater', max_keep_ckpts=1 ),  # 
     sampler_seed=dict(type='DistSamplerSeedHook'),
     visualization=dict(type='SegVisualizationHook'),
     early_stopping=dict(
         type='EarlyStoppingHook',
         monitor='target_class_dice',  # Metric to monitor
-        patience=15,  # Number of epochs to wait for improvement
+        patience=30,  # Number of epochs to wait for improvement
         min_delta=0.01,  # Minimum change to qualify as an improvement
         rule = 'greater'
     )

@@ -117,4 +117,5 @@ class CustomDiceMetric(IoUMetric):
         target_dice = ret_metrics['Dice'][self.target_class_index]
         metrics['target_class_dice'] = target_dice * 100 # 소수점 자리수 * 100 
 
+
         return metrics

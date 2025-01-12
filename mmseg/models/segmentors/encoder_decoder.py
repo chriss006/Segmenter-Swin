@@ -1,12 +1,11 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import logging
-from typing import List, Optional
-
+from typing import List, Optional, Union, Tuple, Dict
 import torch.nn as nn
+import torch
 import torch.nn.functional as F
 from mmengine.logging import print_log
 from torch import Tensor
-
 from mmseg.registry import MODELS
 from mmseg.utils import (ConfigType, OptConfigType, OptMultiConfig,
                          OptSampleList, SampleList, add_prefix)
@@ -221,6 +220,38 @@ class EncoderDecoder(BaseSegmentor):
 
         return self.postprocess_result(seg_logits, data_samples)
 
+    def loss_and_predict(self,
+                batch_inputs: Tensor,
+                batch_data_samples: SampleList,
+                rescale: bool = True) -> SampleList:
+        """Predict results and calculate losses from a batch of inputs and data samples with post-
+        processing.
+
+        Args:
+            batch_inputs (Tensor): Inputs, has shape (bs, dim, H, W).
+            batch_data_samples (List[:obj:`DetDataSample`]): The batch
+                data samples. It usually includes information such
+                as `gt_instance` or `gt_panoptic_seg` or `gt_sem_seg`.
+            rescale (bool): Whether to rescale the results.
+                Defaults to True.
+
+        Returns:
+            list[:obj:`DetDataSample`]: Detection results of the input images.
+            Each DetDataSample usually contain 'pred_instances'. And the
+            `pred_instances` usually contains following keys.
+
+            - scores (Tensor): Classification scores, has a shape
+              (num_instance, )
+            - labels (Tensor): Labels of bboxes, has a shape
+              (num_instances, ).
+            - bboxes (Tensor): Has a shape (num_instances, 4),
+              the last dimension 4 arrange as (x1, y1, x2, y2).
+            dict: A dictionary of loss components
+        """
+        preds = self.predict(batch_inputs, batch_data_samples, rescale=rescale)
+        losses = self.loss(batch_inputs, batch_data_samples)
+        return preds, losses
+
     def _forward(self,
                  inputs: Tensor,
                  data_samples: OptSampleList = None) -> Tensor:
@@ -362,3 +393,6 @@ class EncoderDecoder(BaseSegmentor):
         # unravel batch dim
         seg_pred = list(seg_pred)
         return seg_pred
+
+
+

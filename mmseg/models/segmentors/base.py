@@ -96,6 +96,10 @@ class BaseSegmentor(BaseModel, metaclass=ABCMeta):
             return self.predict(inputs, data_samples)
         elif mode == 'tensor':
             return self._forward(inputs, data_samples)
+        elif mode == 'loss_and_predict':
+            losses = self.forward(inputs, mode='loss')
+            predictions = self.forward(inputs, mode='predict')
+            return dict(loss=losses, predict=predictions)
         else:
             raise RuntimeError(f'Invalid mode "{mode}". '
                                'Only supports loss, predict and tensor mode')

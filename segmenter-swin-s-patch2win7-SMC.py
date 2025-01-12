@@ -17,8 +17,8 @@ model = dict(
         embed_dims=48,
         depths=[2, 2, 18, 2],
         num_heads=[3, 6, 12, 24],
-        patch_size=2,
-        window_size=7,
+        patch_size=2, # patch size
+        window_size=7, # window-size
         strides=[2,2,2,2],
         use_abs_pos_embed=False,
         drop_path_rate=0.3,
@@ -35,13 +35,10 @@ model = dict(
         num_classes=2,
         loss_decode=[
             dict(type='DiceLoss', use_sigmoid=False, loss_weight=2.0),
-    dict(type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0, class_weight=[0.1,0.9])
+    dict(type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0, class_weight=[0.1,0.9] )
     ], ),
     test_cfg=dict(mode='slide', crop_size=crop_size, stride=(80, 291)),
     )
-
-train_dataloader = dict(batch_size=16) #batch-size
-val_dataloader = dict(batch_size=1)
 
 
 val_evaluator = dict(type='CustomDiceMetric', target_class_index=1,iou_metrics=['mIoU', 'mDice'])
@@ -69,6 +66,7 @@ optim_wrapper = dict(
 
 
 
-load_from = checkpoint
+#load_from = checkpoint
+resume_from = '../SMC/work_dirs/patch2/CEDS_w7batch32lr6e-6/k-fold/fold5/epoch_230.pth'
 log_level = 'INFO'
 log_processor = dict(by_epoch=True)
