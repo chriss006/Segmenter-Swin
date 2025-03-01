@@ -66,7 +66,7 @@ optim_wrapper = dict(
 
 
 
-#load_from = checkpoint
-resume_from = '../SMC/work_dirs/patch2/CEDS_w7batch32lr6e-6/k-fold/fold5/epoch_230.pth'
+load_from = checkpoint
+#resume_from = '../SMC/work_dirs/patch2/CEDS_w7batch32lr6e-6/k-fold/fold5/epoch_230.pth'
 log_level = 'INFO'
 log_processor = dict(by_epoch=True)

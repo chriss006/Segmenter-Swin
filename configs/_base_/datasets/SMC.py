@@ -5,7 +5,7 @@ data_root = '../SMC/dataset/'
 
 
 # ann_file 경로
-fold_id = 5
+fold_id = 2
 fold_train_split_txt = f'fold_splits/fold{fold_id}_train.txt'
 fold_val_split_txt = f'fold_splits/fold{fold_id}_val.txt'
 fold_test_split_txt = f'fold_splits/fold{fold_id}_test.txt'
@@ -36,7 +36,7 @@ test_pipeline = val_pipeline
 
 # Train 데이터 로더
 train_dataloader = dict(
-    batch_size=32,
+    batch_size=16,
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
